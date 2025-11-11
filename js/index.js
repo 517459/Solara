@@ -4968,12 +4968,12 @@ function updateOnlineHighlight() {
 const EXPLORE_RADAR_GENRES = [
     "流行",
     "摇滚",
-    "电子",
     "说唱",
     "乡村",
     "热门",
     "R&B",
-    "嘻哈",
+    "嘻哈", 
+    "华语",
 ];
 
 function pickRandomExploreGenre() {
