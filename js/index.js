@@ -5562,7 +5562,6 @@ function updateOnlineHighlight() {
 
 const EXPLORE_RADAR_GENRES = [
     "流行",
-    "摇滚",
     "说唱",
     "乡村",
     "热门",
