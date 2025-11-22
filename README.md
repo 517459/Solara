@@ -30,7 +30,9 @@
 - 🛠️ 调试控制台：按下 Ctrl + D 呼出实时日志面板，便于排查接口或交互异常。
 
 ## 🚀 快速上手
-> ⚠️ 项目完全依赖 Cloudflare Pages Functions，目前仅支持部署到 Cloudflare Pages 环境运行。
+根据使用的托管平台，推荐使用 Cloudflare Pages 进行部署：
+
+### ✅ Cloudflare Pages
 1. Fork 或克隆本仓库。
 2. 按照 Cloudflare Pages 文档创建站点，并将本仓库作为构建来源或直接上传静态资源。
 3. 部署完成后，通过 Cloudflare Pages 分配的域名访问站点即可体验播放器。
@@ -39,14 +41,34 @@
 - API 基地址定义在 index.html 中的 `API.baseUrl`（约 1300 行），可替换为自建接口域名。
 - 默认主题、播放模式等偏好可在 `state` 初始化逻辑中按需调整。
 
+### ☁️ Cloudflare D1 绑定与建表
+1. 在 Cloudflare Dashboard 的 **Workers & Pages → D1 → Create** 中新建数据库，建议命名为 `solara-db`（名称可自定）。
+2. 打开 Pages 项目设置，依次进入 **Settings → Functions → Bindings → Add binding → D1 Database**：
+   - **Binding name** 填写 `DB`（必须与 `functions/api/storage.ts` 中的环境变量一致）。
+   - **D1 Database** 选择上一步创建的数据库并保存。
+3. 在数据库详情页切换到 **Query** 标签页，执行下方建表语句初始化两个独立的键值存储表（播放数据与收藏数据分离）：
+   ```sql
+   CREATE TABLE IF NOT EXISTS playback_store (
+     key TEXT PRIMARY KEY,
+     value TEXT,
+     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+   );
+
+   CREATE TABLE IF NOT EXISTS favorites_store (
+     key TEXT PRIMARY KEY,
+     value TEXT,
+     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+4. 重新部署或预览站点。前端会优先检测 D1 绑定：播放状态、播放列表等写入 `playback_store`，收藏相关写入 `favorites_store`；未绑定时自动退回浏览器 localStorage。
+
 ## 🧭 探索雷达
 - 探索雷达会在「流行、摇滚、古典音乐、民谣、电子、爵士、说唱、乡村、蓝调、R&B、金属、嘻哈、轻音乐」等分类中随机挑选关键词，自动为播放列表补充新歌。
 - 如果想排除某些不喜欢的分类，可在 `js/index.js` 中的 `EXPLORE_RADAR_GENRES` 数组里删除对应条目或新增自己喜欢的分类，保存后重新部署即可生效。
 
 ## 🔐 访问控制设置
-- 在 Cloudflare Pages 项目的 **Settings → Functions → Environment variables** 中新增名为 `PASSWORD` 的环境变量，值为希望设置的访问口令。
-- 变量保存后重新部署站点，未登录的访问者会被自动重定向到 `/login` 页面并需输入该口令。
-- 若后续想关闭访问口令，只需在同一位置删除 `PASSWORD` 环境变量并重新部署。
+- **Cloudflare Pages：** 在项目的 **Settings → Functions → Environment variables** 中新增名为 `PASSWORD` 的环境变量，值为希望设置的访问口令。
+- 部署完成后，未登录的访问者会被自动重定向到 `/login` 页面并需输入该口令；若想关闭访问口令，删除该环境变量并重新部署即可。
 ## 🎵 使用流程
 1. 输入关键词并选择想要的曲库后发起搜索。
 2. 在结果列表中可试听、播放、下载或加入播放队列。
